@@ -1,6 +1,8 @@
 <?php
-$data = htmlspecialchars($_POST['data']);
-$data = trim($data);
+$name = htmlspecialchars($_POST['name'] ?? "");
+$name = trim($name);
+$tel_number = htmlspecialchars($_POST['tel_number'] ?? "");
+$tel_number = trim($tel_number);
 $jsonArray = [];
 
 //Чтение файла
@@ -10,17 +12,19 @@ if (file_exists('data.json')) {
 }
 
 //Добавление в файл
-if ($data) {
-    $jsonArray[] = $data;
+if ($name && $tel_number) {
+    $jsonArray[] = [$name, $tel_number];
     file_put_contents('data.json', json_encode($jsonArray, JSON_FORCE_OBJECT));
-    header("Location:".$_SERVER['HTTP_REFERER']);
+    header("Location:" . $_SERVER['HTTP_REFERER']);
+
 }
 
 //Удаление
 if (isset($_POST['del'])) {
+    $key = $_POST['key'] - 1;
     unset($jsonArray[$key]);
     file_put_contents('data.json', json_encode($jsonArray, JSON_FORCE_OBJECT));
-    header("Location:".$_SERVER['HTTP_REFERER']);
+    header("Location:" . $_SERVER['HTTP_REFERER']);
 }
 
 ?>
@@ -32,7 +36,7 @@ if (isset($_POST['del'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <title>Name_Numbers on php and json</title>
+    <title>Name and Phone Number on php and json</title>
     <meta name="description"
         content="Создание веб-приложения на PHP без использования фреймворков и базы данных. Данные хранятся в файле JSON">
     <style>
@@ -55,7 +59,7 @@ if (isset($_POST['del'])) {
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header">
-                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Добавить Имя и Телефонный номер
+                                    <h1 class="modal-title fs-5" id="exampleModalLabel">Введите:
                                     </h1>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
                                         <span aria-hidden="true">&times;</span>
@@ -64,7 +68,9 @@ if (isset($_POST['del'])) {
                                 <div class="modal-body">
                                     <form action="" method="post">
                                         <div class="form-group">
-                                            <input type="text" class="form control" name="data" />
+                                            <p>Имя: <input type="text" class="form control" name="name" /></p>
+                                            <p>Номер телефона: <input type="tel" class="form control"
+                                                    name="tel_number" /></p>
                                         </div>
                                 </div>
                                 <div class="modal-footer">
@@ -78,49 +84,55 @@ if (isset($_POST['del'])) {
                         <thead class="table-success">
                             <tr>
                                 <th scope="col" style="width: 5%;">№</th>
-                                <th scope="col" class="text-center">Имя и Телефонный номер</th>
+                                <th scope="col" class="text-center">Имя</th>
+                                <th scope="col" class="text-center">Телефонный номер</th>
                                 <th scope="col" class="text-center">Действие</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($jsonArray as $key => $value): ?>
-                                <tr>
-                                    <th scope="row"><?php echo (int) $key + 1 ?></th>
-                                    <td><?php echo $value ?></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-danger mb-1" data-bs-toggle="modal"
-                                            data-bs-target="#delete<?php echo $key; ?>"><i
-                                                class="fas fa-trash"></i>Удалить</button>
-                                        <!-- Modal delete -->
-                                        <div class="modal fade" id="delete<?php echo $key; ?>" tabindex="-1" role="dialog"
-                                            aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                            <div class="modal-dialog" role="document">
-                                                <div class="modal-content">
-                                                    <div class="modal-header bg-danger">
-                                                        <h1 class="modal-title fs-5" id="exampleModalLabel">Удалить запись
-                                                        </h1>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                            aria-label="Close">
-                                                            <span aria-hidden="true">&times;</span>
-                                                        </button>
+                            <?php if (!empty($jsonArray) && is_array($jsonArray)):
+                                $key = 0;
+                                foreach ($jsonArray as $index => $data):
+                                    $key++; ?>
+
+                                    <tr>
+                                        <th scope="row"><?php echo $key ?></th>
+                                        <td><?php echo $data[0] ?></td>
+                                        <td><?php echo $data[1] ?></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-danger mb-1" data-bs-toggle="modal"
+                                                data-bs-target="#delete<?php echo $key; ?>">Удалить</button>
+                                            <!-- Modal delete -->
+                                            <div class="modal fade" id="delete<?php echo $key; ?>" tabindex="-1" role="dialog"
+                                                aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                                <div class="modal-dialog" role="document">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header bg-danger">
+                                                            <h1 class="modal-title fs-5" id="exampleModalLabel">Удалить запись
+                                                            </h1>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                                                aria-label="Close">
+                                                                <span aria-hidden="true">&times;</span>
+                                                            </button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <form action="" method="post">
+                                                                <div class="form-group">
+                                                                    <input type="hidden" class="form control" name="key"
+                                                                        value="<?php echo $key; ?>">
+                                                                </div>
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button class="btn btn-danger" name="del">Удалить</button>
+                                                        </div>
+                                                        </form>
                                                     </div>
-                                                    <div class="modal-body">
-                                                        <form action="" method="post">
-                                                            <div class="form-group">
-                                                                <input type="hidden" class="form control" name="key"
-                                                                    value="<?php echo $key; ?>">
-                                                            </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button class="btn btn-danger" name="del">Удалить</button>
-                                                    </div>
-                                                    </form>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
                         </tbody>
                     </table>
                 </div>
@@ -131,4 +143,5 @@ if (isset($_POST['del'])) {
             crossorigin="anonymous"></script>
     </section>
 </body>
+
 </html>
